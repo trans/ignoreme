@@ -9,7 +9,7 @@ A .gitignore compatible pattern parser for Crystal.
    ```yaml
    dependencies:
      ignoreme:
-       github: transfire/ignoreme
+       github: trans/ignoreme
    ```
 
 2. Run `shards install`
@@ -55,6 +55,25 @@ matcher.add("*.o")
 matcher.add("*.log")
 matcher.add("!important.log")
 matcher.ignores?("test.o")  # => true
+```
+
+### Loading from a Directory Tree
+
+Load all `.gitignore` files from a project, with patterns scoped to their directories:
+
+```crystal
+matcher = Ignoreme.root("/path/to/project")
+matcher.ignores?("src/debug.log")
+```
+
+This loads `.gitignore` files from the root and all subdirectories. Patterns from deeper directories take precedence, so a `!debug.log` in `src/.gitignore` will override `*.log` in the root `.gitignore`.
+
+### Loading Individual Files
+
+```crystal
+matcher = Ignoreme::Matcher.new
+matcher.add_file(".gitignore")
+matcher.add_file("src/.gitignore", base: "src/")
 ```
 
 ## Supported Patterns
