@@ -1,0 +1,9 @@
+name: ignoreme
+version: 0.1.0
+
+authors:
+  - Thomas Sawyer <transfire@gmail.com>
+
+crystal: '>= 1.18.2'
+
+license: MIT
