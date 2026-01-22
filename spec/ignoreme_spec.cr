@@ -151,6 +151,29 @@ describe Ignoreme do
         pattern.matches?("foobar.txt").should be_false
       end
     end
+
+    describe "base_path" do
+      it "pattern with base_path only matches within that path" do
+        pattern = Ignoreme::Pattern.new("*.log", "src/")
+        pattern.base_path.should eq("src/")
+        pattern.matches?("src/debug.log").should be_true
+        pattern.matches?("src/sub/debug.log").should be_true
+        pattern.matches?("debug.log").should be_false
+        pattern.matches?("other/debug.log").should be_false
+      end
+
+      it "anchored pattern with base_path anchors to base" do
+        pattern = Ignoreme::Pattern.new("/build", "src/")
+        pattern.matches?("src/build").should be_true
+        pattern.matches?("src/sub/build").should be_false
+        pattern.matches?("build").should be_false
+      end
+
+      it "normalizes base_path with trailing slash" do
+        pattern = Ignoreme::Pattern.new("*.log", "src")
+        pattern.base_path.should eq("src/")
+      end
+    end
   end
 
   describe Ignoreme::Matcher do
@@ -190,6 +213,32 @@ describe Ignoreme do
       matcher.ignores?("foo.o").should be_true
       matcher.ignores?("important.o").should be_false
     end
+
+    describe "hierarchical patterns" do
+      it "add with base restricts pattern to subtree" do
+        matcher = Ignoreme::Matcher.new
+        matcher.add("*.log", "src/")
+        matcher.ignores?("src/debug.log").should be_true
+        matcher.ignores?("debug.log").should be_false
+      end
+
+      it "parse with base restricts all patterns to subtree" do
+        matcher = Ignoreme::Matcher.new
+        matcher.parse("*.log\n*.tmp", "src/")
+        matcher.ignores?("src/debug.log").should be_true
+        matcher.ignores?("src/cache.tmp").should be_true
+        matcher.ignores?("debug.log").should be_false
+      end
+
+      it "deeper patterns take precedence" do
+        matcher = Ignoreme::Matcher.new
+        matcher.add("*.log")           # ignore all .log files
+        matcher.add("!debug.log", "src/")  # but not debug.log in src/
+        matcher.ignores?("app.log").should be_true
+        matcher.ignores?("src/app.log").should be_true
+        matcher.ignores?("src/debug.log").should be_false
+      end
+    end
   end
 
   describe "module-level API" do
@@ -202,6 +251,70 @@ describe Ignoreme do
     it "Ignoreme.ignores? provides quick check" do
       Ignoreme.ignores?("foo.txt", "*.txt").should be_true
       Ignoreme.ignores?("foo.log", "*.txt").should be_false
+    end
+  end
+
+  describe "file and directory loading" do
+    it "add_file loads patterns from a file" do
+      Dir.cd(Dir.tempdir) do
+        File.write(".gitignore", "*.log\n*.tmp")
+        matcher = Ignoreme::Matcher.new
+        matcher.add_file(".gitignore")
+        matcher.ignores?("debug.log").should be_true
+        matcher.ignores?("cache.tmp").should be_true
+        matcher.ignores?("main.cr").should be_false
+        File.delete(".gitignore")
+      end
+    end
+
+    it "add_file with base restricts to subtree" do
+      Dir.cd(Dir.tempdir) do
+        File.write("test.gitignore", "*.log")
+        matcher = Ignoreme::Matcher.new
+        matcher.add_file("test.gitignore", "src/")
+        matcher.ignores?("src/debug.log").should be_true
+        matcher.ignores?("debug.log").should be_false
+        File.delete("test.gitignore")
+      end
+    end
+
+    it "add_file returns self for missing files" do
+      matcher = Ignoreme::Matcher.new
+      matcher.add_file("/nonexistent/.gitignore")
+      matcher.size.should eq(0)
+    end
+
+    it "from_directory loads all .gitignore files" do
+      Dir.cd(Dir.tempdir) do
+        # Create test directory structure
+        Dir.mkdir_p("testproj/src/lib")
+
+        File.write("testproj/.gitignore", "*.log")
+        File.write("testproj/src/.gitignore", "*.tmp\n!important.tmp")
+        File.write("testproj/src/lib/.gitignore", "!debug.log")
+
+        matcher = Ignoreme.from_directory("testproj")
+
+        # Root patterns apply everywhere
+        matcher.ignores?("app.log").should be_true
+        matcher.ignores?("src/app.log").should be_true
+
+        # src patterns only in src/
+        matcher.ignores?("src/cache.tmp").should be_true
+        matcher.ignores?("cache.tmp").should be_false
+        matcher.ignores?("src/important.tmp").should be_false
+
+        # Deeper negation overrides
+        matcher.ignores?("src/lib/debug.log").should be_false
+
+        # Cleanup
+        File.delete("testproj/src/lib/.gitignore")
+        File.delete("testproj/src/.gitignore")
+        File.delete("testproj/.gitignore")
+        Dir.delete("testproj/src/lib")
+        Dir.delete("testproj/src")
+        Dir.delete("testproj")
+      end
     end
   end
 end

@@ -2,14 +2,17 @@ module Ignoreme
   # Represents a single gitignore pattern
   class Pattern
     getter pattern : String
+    getter base_path : String
     getter? negated : Bool
     getter? directory_only : Bool
     getter? anchored : Bool
 
     @regex : Regex
 
-    def initialize(pattern : String)
+    def initialize(pattern : String, base_path : String = "")
       @pattern = pattern
+      @base_path = base_path.chomp("/")
+      @base_path = @base_path + "/" unless @base_path.empty?
       @negated = false
       @directory_only = false
       @anchored = false
@@ -56,6 +59,13 @@ module Ignoreme
 
       # Directory-only patterns don't match files
       return false if @directory_only && !is_dir
+
+      # If we have a base path, the check_path must be within it
+      unless @base_path.empty?
+        return false unless check_path.starts_with?(@base_path) || check_path + "/" == @base_path
+        # Get the relative path for matching
+        check_path = check_path[@base_path.size..]
+      end
 
       @regex.matches?(check_path)
     end
