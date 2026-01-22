@@ -82,17 +82,9 @@ module Ignoreme
     # Collect all .gitignore files with their relative base paths
     gitignore_files = [] of Tuple(String, String) # {file_path, base_path}
 
-    # Check root .gitignore
-    root_gitignore = File.join(root, ".gitignore")
-    if File.exists?(root_gitignore)
-      gitignore_files << {root_gitignore, ""}
-    end
-
-    # Find .gitignore files in subdirectories
-    # Use **/*/.gitignore since **/.gitignore doesn't match dotfiles in Crystal
-    Dir.glob(File.join(root, "**/*/.gitignore")) do |file|
+    Dir.glob(File.join(root, "**/.gitignore"), match: :dot_files) do |file|
       dir = File.dirname(file)
-      base = dir[(root.size + 1)..]
+      base = dir == root ? "" : dir[(root.size + 1)..]
       gitignore_files << {file, base}
     end
 
