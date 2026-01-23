@@ -68,30 +68,30 @@ module Ignoreme
     parse(patterns).ignores?(path)
   end
 
-  # Load all .gitignore files from a directory tree
+  # Load all ignore files from a directory tree
   # Patterns from deeper directories take precedence (loaded after shallower ones)
-  def self.root(root : String) : Matcher
-    from_directory(root)
+  def self.root(root : String, ignore_file : String = ".gitignore") : Matcher
+    from_directory(root, ignore_file)
   end
 
   # :ditto:
-  def self.from_directory(root : String) : Matcher
+  def self.from_directory(root : String, ignore_file : String = ".gitignore") : Matcher
     matcher = Matcher.new
     root = root.chomp("/")
 
-    # Collect all .gitignore files with their relative base paths
-    gitignore_files = [] of Tuple(String, String) # {file_path, base_path}
+    # Collect all ignore files with their relative base paths
+    found_files = [] of Tuple(String, String) # {file_path, base_path}
 
-    Dir.glob(File.join(root, "**/.gitignore"), match: :dot_files) do |file|
+    Dir.glob(File.join(root, "**/#{ignore_file}"), match: :dot_files) do |file|
       dir = File.dirname(file)
       base = dir == root ? "" : dir[(root.size + 1)..]
-      gitignore_files << {file, base}
+      found_files << {file, base}
     end
 
     # Sort by depth (shallower first) so deeper patterns come later and take precedence
-    gitignore_files.sort_by! { |_, base| base.count("/") }
+    found_files.sort_by! { |_, base| base.count("/") }
 
-    gitignore_files.each do |file, base|
+    found_files.each do |file, base|
       matcher.add_file(file, base)
     end
 
