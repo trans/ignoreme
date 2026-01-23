@@ -68,6 +68,16 @@ matcher.ignores?("src/debug.log")
 
 This loads `.gitignore` files from the root and all subdirectories. Patterns from deeper directories take precedence, so a `!debug.log` in `src/.gitignore` will override `*.log` in the root `.gitignore`.
 
+You can also load other ignore file formats:
+
+```crystal
+# Load .dockerignore files
+matcher = Ignoreme.root("/path/to/project", ".dockerignore")
+
+# Load .npmignore files
+matcher = Ignoreme.root("/path/to/project", ".npmignore")
+```
+
 ### Loading Individual Files
 
 ```crystal
