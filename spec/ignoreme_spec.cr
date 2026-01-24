@@ -317,4 +317,210 @@ describe Ignoreme do
       end
     end
   end
+
+  describe Ignoreme::Dir do
+    around_each do |example|
+      Dir.cd(Dir.tempdir) do
+        # Create test directory structure
+        Dir.mkdir_p("testproj/src/lib")
+        Dir.mkdir_p("testproj/build")
+        File.write("testproj/main.cr", "main")
+        File.write("testproj/debug.log", "log")
+        File.write("testproj/src/app.cr", "app")
+        File.write("testproj/src/app.log", "log")
+        File.write("testproj/src/lib/util.cr", "util")
+        File.write("testproj/build/output.o", "output")
+
+        example.run
+
+        # Cleanup
+        File.delete("testproj/build/output.o")
+        File.delete("testproj/src/lib/util.cr")
+        File.delete("testproj/src/app.log")
+        File.delete("testproj/src/app.cr")
+        File.delete("testproj/debug.log")
+        File.delete("testproj/main.cr")
+        Dir.delete("testproj/build")
+        Dir.delete("testproj/src/lib")
+        Dir.delete("testproj/src")
+        Dir.delete("testproj")
+      end
+    end
+
+    describe "initialization" do
+      it "initializes with path and patterns" do
+        dir = Ignoreme::Dir.new("testproj", "*.log")
+        dir.path.should eq("testproj")
+        dir.ignores?("debug.log").should be_true
+      end
+
+      it "initializes with multiple patterns" do
+        dir = Ignoreme::Dir.new("testproj", "*.log", "*.o")
+        dir.ignores?("debug.log").should be_true
+        dir.ignores?("output.o").should be_true
+      end
+
+      it "initializes with file: parameter" do
+        File.write("testproj/.gitignore", "*.log")
+        dir = Ignoreme::Dir.new("testproj", file: "testproj/.gitignore")
+        dir.ignores?("debug.log").should be_true
+        File.delete("testproj/.gitignore")
+      end
+
+      it "initializes with root: parameter" do
+        File.write("testproj/.gitignore", "*.log")
+        File.write("testproj/src/.gitignore", "!app.log")
+        dir = Ignoreme::Dir.new("testproj", root: ".gitignore")
+        dir.ignores?("debug.log").should be_true
+        dir.ignores?("src/app.log").should be_false
+        File.delete("testproj/src/.gitignore")
+        File.delete("testproj/.gitignore")
+      end
+    end
+
+    describe "#glob" do
+      it "returns files not matching ignore patterns" do
+        dir = Ignoreme::Dir.new("testproj", "*.log")
+        results = dir.glob("**/*").map { |p| p.sub("testproj/", "") }.sort
+        results.should contain("main.cr")
+        results.should contain("src/app.cr")
+        results.should_not contain("debug.log")
+        results.should_not contain("src/app.log")
+      end
+
+      it "filters directories and their contents" do
+        dir = Ignoreme::Dir.new("testproj", "build/")
+        results = dir.glob("**/*").map { |p| p.sub("testproj/", "") }
+        results.should_not contain("build/output.o")
+        results.should contain("main.cr")
+      end
+
+      it "yields to block" do
+        dir = Ignoreme::Dir.new("testproj", "*.log")
+        results = [] of String
+        dir.glob("**/*.cr") { |p| results << p }
+        results.size.should be > 0
+        results.all? { |p| p.ends_with?(".cr") }.should be_true
+      end
+    end
+
+    describe "#children" do
+      it "returns filtered children of base directory" do
+        dir = Ignoreme::Dir.new("testproj", "*.log")
+        children = dir.children
+        children.should contain("main.cr")
+        children.should contain("src")
+        children.should_not contain("debug.log")
+      end
+
+      it "filters directories" do
+        dir = Ignoreme::Dir.new("testproj", "build/")
+        children = dir.children
+        children.should contain("src")
+        children.should_not contain("build")
+      end
+    end
+
+    describe "#entries" do
+      it "returns filtered entries including . and .." do
+        dir = Ignoreme::Dir.new("testproj", "*.log")
+        entries = dir.entries
+        entries.should contain(".")
+        entries.should contain("..")
+        entries.should contain("main.cr")
+        entries.should_not contain("debug.log")
+      end
+    end
+
+    describe "#each_child" do
+      it "yields filtered children" do
+        dir = Ignoreme::Dir.new("testproj", "*.log")
+        children = [] of String
+        dir.each_child { |c| children << c }
+        children.should contain("main.cr")
+        children.should_not contain("debug.log")
+      end
+    end
+
+    describe "#add" do
+      it "adds patterns and returns self" do
+        dir = Ignoreme::Dir.new("testproj", "*.log")
+        dir.add("*.o").should be(dir)
+        dir.ignores?("output.o").should be_true
+      end
+    end
+
+    describe "parent directory filtering" do
+      it "filters files inside ignored directories" do
+        dir = Ignoreme::Dir.new("testproj", "src/")
+        results = dir.glob("**/*").map { |p| p.sub("testproj/", "") }
+        results.should_not contain("src/app.cr")
+        results.should_not contain("src/lib/util.cr")
+        results.should contain("main.cr")
+      end
+    end
+  end
+
+  describe "Dir monkey patch" do
+    around_each do |example|
+      Dir.cd(Dir.tempdir) do
+        Dir.mkdir_p("testproj/src")
+        File.write("testproj/main.cr", "main")
+        File.write("testproj/debug.log", "log")
+        File.write("testproj/src/app.cr", "app")
+
+        example.run
+
+        File.delete("testproj/src/app.cr")
+        File.delete("testproj/debug.log")
+        File.delete("testproj/main.cr")
+        Dir.delete("testproj/src")
+        Dir.delete("testproj")
+      end
+    end
+
+    describe "class methods" do
+      it "Dir.ignore returns Ignoreme::Dir" do
+        dir = Dir.ignore("*.log")
+        dir.should be_a(Ignoreme::Dir)
+      end
+
+      it "Dir.ignore with patterns uses current directory" do
+        Dir.cd("testproj") do
+          dir = Dir.ignore("*.log")
+          dir.path.should eq(Dir.current)
+        end
+      end
+
+      it "Dir.ignore with root: loads ignore files" do
+        File.write("testproj/.gitignore", "*.log")
+        Dir.cd("testproj") do
+          dir = Dir.ignore(root: ".gitignore")
+          dir.ignores?("debug.log").should be_true
+        end
+        File.delete("testproj/.gitignore")
+      end
+    end
+
+    describe "instance methods" do
+      it "Dir#ignore returns Ignoreme::Dir with Dir's path" do
+        dir = Dir.new("testproj").ignore("*.log")
+        dir.should be_a(Ignoreme::Dir)
+        dir.path.should eq("testproj")
+      end
+
+      it "Dir#ignore chains with glob" do
+        results = Dir.new("testproj").ignore("*.log").glob("**/*")
+        results.any? { |p| p.ends_with?(".cr") }.should be_true
+        results.none? { |p| p.ends_with?(".log") }.should be_true
+      end
+
+      it "Dir#ignore with root: loads ignore files from Dir's path" do
+        File.write("testproj/.gitignore", "*.log")
+        dir = Dir.new("testproj").ignore(root: ".gitignore")
+        dir.ignores?("debug.log").should be_true
+        File.delete("testproj/.gitignore")
+      end
+    end
+  end
 end

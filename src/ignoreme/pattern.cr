@@ -62,9 +62,15 @@ module Ignoreme
 
       # If we have a base path, the check_path must be within it
       unless @base_path.empty?
-        return false unless check_path.starts_with?(@base_path) || check_path + "/" == @base_path
-        # Get the relative path for matching
-        check_path = check_path[@base_path.size..]
+        if check_path.starts_with?(@base_path)
+          # Get the relative path for matching
+          check_path = check_path[@base_path.size..]
+        elsif check_path + "/" == @base_path
+          # Path is exactly the base directory itself
+          check_path = ""
+        else
+          return false
+        end
       end
 
       @regex.matches?(check_path)
