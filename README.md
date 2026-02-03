@@ -1,4 +1,4 @@
-# ignoreme
+# ignore
 
 A .gitignore compatible pattern parser for Crystal.
 
@@ -8,8 +8,8 @@ A .gitignore compatible pattern parser for Crystal.
 
    ```yaml
    dependencies:
-     ignoreme:
-       github: trans/ignoreme
+     ignore:
+       github: trans/ignore
    ```
 
 2. Run `shards install`
@@ -17,10 +17,10 @@ A .gitignore compatible pattern parser for Crystal.
 ## Usage
 
 ```crystal
-require "ignoreme"
+require "ignore"
 
 # Parse gitignore content
-matcher = Ignoreme.parse(<<-GITIGNORE
+matcher = Ignore.parse(<<-GITIGNORE
   build/
   *.o
   *.log
@@ -34,7 +34,7 @@ matcher.ignores?("debug.log")    # => true
 matcher.ignores?("important.log") # => false (negated)
 
 # Quick one-liner
-Ignoreme.ignores?("foo.log", "*.log")  # => true
+Ignore.ignores?("foo.log", "*.log")  # => true
 ```
 
 ### Directory Matching
@@ -42,7 +42,7 @@ Ignoreme.ignores?("foo.log", "*.log")  # => true
 Use a trailing slash to check directories:
 
 ```crystal
-matcher = Ignoreme.parse("build/")
+matcher = Ignore.parse("build/")
 matcher.ignores?("build/")  # => true (directory)
 matcher.ignores?("build")   # => false (file)
 ```
@@ -50,11 +50,20 @@ matcher.ignores?("build")   # => false (file)
 ### Building Patterns Incrementally
 
 ```crystal
-matcher = Ignoreme::Matcher.new
+matcher = Ignore::Matcher.new
 matcher.add("*.o")
 matcher.add("*.log")
 matcher.add("!important.log")
 matcher.ignores?("test.o")  # => true
+
+# Inspect and manage patterns
+matcher.patterns  # => ["*.o", "*.log", "!important.log"]
+matcher.size      # => 3
+matcher.clear     # remove all patterns
+
+# Enumerable support
+matcher.each { |pattern| puts pattern }
+matcher.select { |p| p.starts_with?("*") }
 ```
 
 ### Loading from a Directory Tree
@@ -62,7 +71,7 @@ matcher.ignores?("test.o")  # => true
 Load all `.gitignore` files from a project, with patterns scoped to their directories:
 
 ```crystal
-matcher = Ignoreme.root("/path/to/project")
+matcher = Ignore.root("/path/to/project")
 matcher.ignores?("src/debug.log")
 ```
 
@@ -72,47 +81,103 @@ You can also load other ignore file formats:
 
 ```crystal
 # Load .dockerignore files
-matcher = Ignoreme.root("/path/to/project", ".dockerignore")
+matcher = Ignore.root("/path/to/project", ".dockerignore")
 
 # Load .npmignore files
-matcher = Ignoreme.root("/path/to/project", ".npmignore")
+matcher = Ignore.root("/path/to/project", ".npmignore")
 ```
 
 ### Loading Individual Files
 
 ```crystal
-matcher = Ignoreme::Matcher.new
+matcher = Ignore::Matcher.new
 matcher.add_file(".gitignore")
 matcher.add_file("src/.gitignore", base: "src/")
 ```
 
-### Filtered Directory Operations
+### Managing Ignore Files
 
-Use `Ignoreme::Dir` for filtered directory listings and glob results:
+Use `Ignore::File` to read, modify, and save ignore files:
 
 ```crystal
-dir = Ignoreme::Dir.new("/path/to/project", "*.log", "build/")
+file = Ignore::File.new(".gitignore")
+
+# Inspect patterns
+file.patterns   # => ["*.log", "build/"]
+file.lines      # => ["# Build artifacts", "*.log", "", "build/"]
+file.size       # => 2 (pattern count, excludes comments/blanks)
+
+# Modify patterns
+file.add("*.tmp")
+file.remove("*.log")
+file.includes?("*.tmp")  # => true
+
+# Check paths against patterns
+file.ignores?("debug.tmp")  # => true
+
+# Save changes (preserves comments and blank lines)
+file.save
+
+# Reload from disk (discards unsaved changes)
+file.reload
+
+# Enumerable support (iterates over patterns only)
+file.each { |pattern| puts pattern }
+```
+
+### Filtered Directory Operations
+
+Use `Ignore::Dir` for filtered directory listings and glob results:
+
+```crystal
+dir = Ignore::Dir.new("/path/to/project", "*.log", "build/")
 
 dir.glob("**/*.cr")           # filtered glob
 dir.children                   # filtered directory children
 dir.entries                    # filtered entries (includes . and ..)
 dir.each_child { |entry| ... } # filtered iteration
 
+# Include hidden files in glob
+dir.glob("**/*", match: :dot_files)
+
 # Load patterns from .gitignore files automatically
-dir = Ignoreme::Dir.new("/path/to/project", root: ".gitignore")
+dir = Ignore::Dir.new("/path/to/project", root: ".gitignore")
 
 # Load from a single ignore file
-dir = Ignoreme::Dir.new("/path/to/project", file: ".gitignore")
+dir = Ignore::Dir.new("/path/to/project", file: ".gitignore")
 ```
 
 Directory patterns like `build/` will filter out the directory and all its contents.
+
+#### Inverse Filtering
+
+Get only the ignored files (useful for cleanup tools):
+
+```crystal
+dir = Ignore::Dir.new("/path/to/project", "*.log", "build/")
+
+dir.ignored_glob("**/*")       # only ignored paths
+dir.ignored_children           # only ignored children
+dir.ignored_entries            # only ignored entries
+dir.each_ignored_child { |e| } # iterate ignored children
+```
+
+#### Enumerable Support
+
+`Ignore::Dir` includes `Enumerable`, iterating over non-ignored children:
+
+```crystal
+dir = Ignore::Dir.new("/path/to/project", "*.log")
+dir.select { |entry| entry.ends_with?(".cr") }
+dir.map { |entry| entry.upcase }
+```
 
 #### Dir Monkey Patch (Optional)
 
 For convenience, you can optionally load a monkey patch that adds `ignore` methods to `Dir`:
 
 ```crystal
-require "ignoreme/ext/dir"
+require "ignore/core_ext"
 
 # Class method (uses current directory)
 Dir.ignore("*.log", "build/").glob("**/*")
