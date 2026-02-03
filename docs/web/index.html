@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ignore - Gitignore Pattern Matching for Crystal</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-light: #1e293b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-dim: #0284c7;
+      --code-bg: #020617;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 4rem 0;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn-secondary {
+      background: var(--bg-light);
+      color: var(--text);
+      border: 1px solid var(--text-muted);
+    }
+
+    section {
+      margin-bottom: 3rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      overflow-x: auto;
+      border: 1px solid var(--bg-light);
+    }
+
+    code {
+      font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.9rem;
+    }
+
+    .keyword { color: #c678dd; }
+    .string { color: #98c379; }
+    .comment { color: #5c6370; }
+    .method { color: #61afef; }
+    .const { color: #e5c07b; }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .feature {
+      background: var(--bg-light);
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+    }
+
+    .feature h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .install-code {
+      background: var(--code-bg);
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--bg-light);
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span>ignore</span></h1>
+      <p class="tagline">Gitignore-compatible pattern matching for Crystal</p>
+      <div class="buttons">
+        <a href="https://github.com/trans/ignore" class="btn btn-primary">View on GitHub</a>
+        <a href="https://github.com/trans/ignore#usage" class="btn btn-secondary">Documentation</a>
+      </div>
+    </header>
+
+    <section>
+      <h2>Install</h2>
+      <div class="install-code">
+        dependencies:<br>
+        &nbsp;&nbsp;ignore:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;github: trans/ignore
+      </div>
+    </section>
+
+    <section>
+      <h2>Quick Example</h2>
+      <pre><code><span class="keyword">require</span> <span class="string">"ignore"</span>
+
+<span class="comment"># Parse gitignore patterns</span>
+matcher = <span class="const">Ignore</span>.<span class="method">parse</span>(<span class="string">"*.log\nbuild/\n!important.log"</span>)
+
+matcher.<span class="method">ignores?</span>(<span class="string">"debug.log"</span>)     <span class="comment"># => true</span>
+matcher.<span class="method">ignores?</span>(<span class="string">"build/"</span>)       <span class="comment"># => true</span>
+matcher.<span class="method">ignores?</span>(<span class="string">"important.log"</span>) <span class="comment"># => false</span>
+
+<span class="comment"># Filtered directory operations</span>
+dir = <span class="const">Ignore</span>::<span class="const">Dir</span>.<span class="method">new</span>(<span class="string">"/project"</span>, root: <span class="string">".gitignore"</span>)
+dir.<span class="method">glob</span>(<span class="string">"**/*.cr"</span>)  <span class="comment"># ignores filtered out</span>
+
+<span class="comment"># Manage ignore files</span>
+file = <span class="const">Ignore</span>::<span class="const">File</span>.<span class="method">new</span>(<span class="string">".gitignore"</span>)
+file.<span class="method">add</span>(<span class="string">"*.tmp"</span>).<span class="method">save</span></code></pre>
+    </section>
+
+    <section>
+      <h2>Features</h2>
+      <div class="features">
+        <div class="feature">
+          <h3>Full Pattern Support</h3>
+          <p>Wildcards, character classes, negation, directory-only, anchored patterns, and <code>**</code> globbing.</p>
+        </div>
+        <div class="feature">
+          <h3>Directory Filtering</h3>
+          <p>Filtered glob, children, and entries. Automatically excludes ignored directories and their contents.</p>
+        </div>
+        <div class="feature">
+          <h3>File Management</h3>
+          <p>Read, modify, and save ignore files while preserving comments and blank lines.</p>
+        </div>
+        <div class="feature">
+          <h3>Hierarchical Loading</h3>
+          <p>Load nested ignore files with proper scoping. Deeper patterns take precedence.</p>
+        </div>
+        <div class="feature">
+          <h3>Enumerable</h3>
+          <p>Matcher, Dir, and File all include Enumerable for easy iteration and filtering.</p>
+        </div>
+        <div class="feature">
+          <h3>Inverse Filtering</h3>
+          <p>Get only ignored files with <code>ignored_glob</code>, <code>ignored_children</code>, etc.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>MIT License &middot; <a href="https://github.com/trans/ignore">GitHub</a></p>
+    </footer>
+  </div>
+</body>
+</html>
