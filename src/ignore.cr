@@ -3,7 +3,7 @@ require "./ignore/dir"
 require "./ignore/file"
 
 module Ignore
-  VERSION = "0.3.0"
+  VERSION = "0.4.0"
 
   # A collection of gitignore patterns that can match paths
   class Matcher

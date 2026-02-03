@@ -1,4 +1,4 @@
-require "../dir"
+require "./dir"
 
 # Monkey patch Dir to add ignore methods
 class Dir
