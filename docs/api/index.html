@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Crystal Docs 1.19.1">
+<meta name="crystal_docs.project_version" content="main-dev">
+<meta name="crystal_docs.project_name" content="ignore">
+
+
+
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="js/doc.js"></script>
+
+  <meta name="repository-name" content="ignore">
+  <title>ignore main-dev</title>
+  <script type="text/javascript">
+  CrystalDocs.base_path = "";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill="currentColor" fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<input type="checkbox" id="sidebar-btn">
+<label for="sidebar-btn" id="sidebar-btn-label">
+  <svg class="open" xmlns="http://www.w3.org/2000/svg" height="2em" width="2em" viewBox="0 0 512 512"><title>Open Sidebar</title><path fill="currentColor" d="M80 96v64h352V96H80zm0 112v64h352v-64H80zm0 112v64h352v-64H80z"></path></svg>
+  <svg class="close" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 512 512"><title>Close Sidebar</title><path fill="currentColor" d="m118.6 73.4-45.2 45.2L210.7 256 73.4 393.4l45.2 45.2L256 301.3l137.4 137.3 45.2-45.2L301.3 256l137.3-137.4-45.2-45.2L256 210.7Z"></path></svg>
+</label>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="index.html">
+          ignore
+        </a>
+      </h1>
+
+      <span class="project-version">
+        main-dev
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="ignore/Dir" data-name="dir">
+      <a href="Dir.html">Dir</a>
+      
+    </li>
+  
+  <li class="parent " data-id="ignore/Ignore" data-name="ignore">
+      <a href="Ignore.html">Ignore</a>
+      
+        <ul>
+  
+  <li class=" " data-id="ignore/Ignore/Dir" data-name="ignore::dir">
+      <a href="Ignore/Dir.html">Dir</a>
+      
+    </li>
+  
+  <li class=" " data-id="ignore/Ignore/File" data-name="ignore::file">
+      <a href="Ignore/File.html">File</a>
+      
+    </li>
+  
+  <li class=" " data-id="ignore/Ignore/Matcher" data-name="ignore::matcher">
+      <a href="Ignore/Matcher.html">Matcher</a>
+      
+    </li>
+  
+  <li class=" " data-id="ignore/Ignore/Pattern" data-name="ignore::pattern">
+      <a href="Ignore/Pattern.html">Pattern</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1><a id="ignore" class="anchor" href="#ignore">  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>ignore</h1>
+<p>A .gitignore compatible pattern parser for Crystal.</p>
+<h2><a id="installation" class="anchor" href="#installation">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Installation</h2>
+<ol>
+<li>
+<p>Add the dependency to your <code>shard.yml</code>:</p>
+<pre><code class="language-yaml">dependencies:
+  ignore:
+    github: trans/ignore</code></pre>
+</li>
+<li>
+<p>Run <code>shards install</code></p>
+</li>
+</ol>
+<h2><a id="usage" class="anchor" href="#usage">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Usage</h2>
+<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;ignore&quot;</span>
+
+<span class="c"># Parse gitignore content</span>
+matcher <span class="o">=</span> <span class="t">Ignore</span>.parse(<span class="s">&lt;&lt;-GITIGNORE</span>
+<span class="s">  build/
+  *.o
+  *.log
+  !important.log
+GITIGNORE</span>
+)
+
+matcher.ignores?(<span class="s">&quot;build/&quot;</span>)       <span class="c"># =&gt; true (directory)</span>
+matcher.ignores?(<span class="s">&quot;main.o&quot;</span>)       <span class="c"># =&gt; true</span>
+matcher.ignores?(<span class="s">&quot;debug.log&quot;</span>)    <span class="c"># =&gt; true</span>
+matcher.ignores?(<span class="s">&quot;important.log&quot;</span>) <span class="c"># =&gt; false (negated)</span>
+
+<span class="c"># Quick one-liner</span>
+<span class="t">Ignore</span>.ignores?(<span class="s">&quot;foo.log&quot;</span>, <span class="s">&quot;*.log&quot;</span>)  <span class="c"># =&gt; true</span></code></pre>
+<h3><a id="directory-matching" class="anchor" href="#directory-matching">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Directory Matching</h3>
+<p>Use a trailing slash to check directories:</p>
+<pre><code class="language-crystal">matcher <span class="o">=</span> <span class="t">Ignore</span>.parse(<span class="s">&quot;build/&quot;</span>)
+matcher.ignores?(<span class="s">&quot;build/&quot;</span>)  <span class="c"># =&gt; true (directory)</span>
+matcher.ignores?(<span class="s">&quot;build&quot;</span>)   <span class="c"># =&gt; false (file)</span></code></pre>
+<h3><a id="building-patterns-incrementally" class="anchor" href="#building-patterns-incrementally">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Building Patterns Incrementally</h3>
+<pre><code class="language-crystal">matcher <span class="o">=</span> <span class="t">Ignore</span><span class="t">::</span><span class="t">Matcher</span>.new
+matcher.add(<span class="s">&quot;*.o&quot;</span>)
+matcher.add(<span class="s">&quot;*.log&quot;</span>)
+matcher.add(<span class="s">&quot;!important.log&quot;</span>)
+matcher.ignores?(<span class="s">&quot;test.o&quot;</span>)  <span class="c"># =&gt; true</span>
+
+<span class="c"># Inspect and manage patterns</span>
+matcher.patterns  <span class="c"># =&gt; [&quot;*.o&quot;, &quot;*.log&quot;, &quot;!important.log&quot;]</span>
+matcher.size      <span class="c"># =&gt; 3</span>
+matcher.clear     <span class="c"># remove all patterns</span>
+
+<span class="c"># Enumerable support</span>
+matcher.each { <span class="o">|</span>pattern<span class="o">|</span> puts pattern }
+matcher.<span class="k">select</span> { <span class="o">|</span>p<span class="o">|</span> p.starts_with?(<span class="s">&quot;*&quot;</span>) }</code></pre>
+<h3><a id="loading-from-a-directory-tree" class="anchor" href="#loading-from-a-directory-tree">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Loading from a Directory Tree</h3>
+<p>Load all <code>.gitignore</code> files from a project, with patterns scoped to their directories:</p>
+<pre><code class="language-crystal">matcher <span class="o">=</span> <span class="t">Ignore</span>.root(<span class="s">&quot;/path/to/project&quot;</span>)
+matcher.ignores?(<span class="s">&quot;src/debug.log&quot;</span>)</code></pre>
+<p>This loads <code>.gitignore</code> files from the root and all subdirectories. Patterns from deeper directories take precedence, so a <code>!debug.log</code> in <code>src/.gitignore</code> will override <code>*.log</code> in the root <code>.gitignore</code>.</p>
+<p>You can also load other ignore file formats:</p>
+<pre><code class="language-crystal"><span class="c"># Load .dockerignore files</span>
+matcher <span class="o">=</span> <span class="t">Ignore</span>.root(<span class="s">&quot;/path/to/project&quot;</span>, <span class="s">&quot;.dockerignore&quot;</span>)
+
+<span class="c"># Load .npmignore files</span>
+matcher <span class="o">=</span> <span class="t">Ignore</span>.root(<span class="s">&quot;/path/to/project&quot;</span>, <span class="s">&quot;.npmignore&quot;</span>)</code></pre>
+<h3><a id="loading-individual-files" class="anchor" href="#loading-individual-files">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Loading Individual Files</h3>
+<pre><code class="language-crystal">matcher <span class="o">=</span> <span class="t">Ignore</span><span class="t">::</span><span class="t">Matcher</span>.new
+matcher.add_file(<span class="s">&quot;.gitignore&quot;</span>)
+matcher.add_file(<span class="s">&quot;src/.gitignore&quot;</span>, base: <span class="s">&quot;src/&quot;</span>)</code></pre>
+<h3><a id="managing-ignore-files" class="anchor" href="#managing-ignore-files">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Managing Ignore Files</h3>
+<p>Use <code><a href="Ignore/File.html">Ignore::File</a></code> to read, modify, and save ignore files:</p>
+<pre><code class="language-crystal">file <span class="o">=</span> <span class="t">Ignore</span><span class="t">::</span><span class="t">File</span>.new(<span class="s">&quot;.gitignore&quot;</span>)
+
+<span class="c"># Inspect patterns</span>
+file.patterns   <span class="c"># =&gt; [&quot;*.log&quot;, &quot;build/&quot;]</span>
+file.lines      <span class="c"># =&gt; [&quot;# Build artifacts&quot;, &quot;*.log&quot;, &quot;&quot;, &quot;build/&quot;]</span>
+file.size       <span class="c"># =&gt; 2 (pattern count, excludes comments/blanks)</span>
+
+<span class="c"># Modify patterns</span>
+file.add(<span class="s">&quot;*.tmp&quot;</span>)
+file.remove(<span class="s">&quot;*.log&quot;</span>)
+file.includes?(<span class="s">&quot;*.tmp&quot;</span>)  <span class="c"># =&gt; true</span>
+
+<span class="c"># Check paths against patterns</span>
+file.ignores?(<span class="s">&quot;debug.tmp&quot;</span>)  <span class="c"># =&gt; true</span>
+
+<span class="c"># Save changes (preserves comments and blank lines)</span>
+file.save
+
+<span class="c"># Reload from disk (discards unsaved changes)</span>
+file.reload
+
+<span class="c"># Enumerable support (iterates over patterns only)</span>
+file.each { <span class="o">|</span>pattern<span class="o">|</span> puts pattern }</code></pre>
+<h3><a id="filtered-directory-operations" class="anchor" href="#filtered-directory-operations">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Filtered Directory Operations</h3>
+<p>Use <code><a href="Ignore/Dir.html">Ignore::Dir</a></code> for filtered directory listings and glob results:</p>
+<pre><code class="language-crystal">dir <span class="o">=</span> <span class="t">Ignore</span><span class="t">::</span><span class="t">Dir</span>.new(<span class="s">&quot;/path/to/project&quot;</span>, <span class="s">&quot;*.log&quot;</span>, <span class="s">&quot;build/&quot;</span>)
+
+dir.glob(<span class="s">&quot;**/*.cr&quot;</span>)           <span class="c"># filtered glob</span>
+dir.children                   <span class="c"># filtered directory children</span>
+dir.entries                    <span class="c"># filtered entries (includes . and ..)</span>
+dir.each_child { <span class="o">|</span>entry<span class="o">|</span> ... } <span class="c"># filtered iteration</span>
+
+<span class="c"># Include hidden files in glob</span>
+dir.glob(<span class="s">&quot;**/*&quot;</span>, match: <span class="n">:dot_files</span>)
+
+<span class="c"># Load patterns from .gitignore files automatically</span>
+dir <span class="o">=</span> <span class="t">Ignore</span><span class="t">::</span><span class="t">Dir</span>.new(<span class="s">&quot;/path/to/project&quot;</span>, root: <span class="s">&quot;.gitignore&quot;</span>)
+
+<span class="c"># Load from a single ignore file</span>
+dir <span class="o">=</span> <span class="t">Ignore</span><span class="t">::</span><span class="t">Dir</span>.new(<span class="s">&quot;/path/to/project&quot;</span>, file: <span class="s">&quot;.gitignore&quot;</span>)</code></pre>
+<p>Directory patterns like <code>build/</code> will filter out the directory and all its contents.</p>
+<h4><a id="inverse-filtering" class="anchor" href="#inverse-filtering">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Inverse Filtering</h4>
+<p>Get only the ignored files (useful for cleanup tools):</p>
+<pre><code class="language-crystal">dir <span class="o">=</span> <span class="t">Ignore</span><span class="t">::</span><span class="t">Dir</span>.new(<span class="s">&quot;/path/to/project&quot;</span>, <span class="s">&quot;*.log&quot;</span>, <span class="s">&quot;build/&quot;</span>)
+
+dir.ignored_glob(<span class="s">&quot;**/*&quot;</span>)       <span class="c"># only ignored paths</span>
+dir.ignored_children           <span class="c"># only ignored children</span>
+dir.ignored_entries            <span class="c"># only ignored entries</span>
+dir.each_ignored_child { <span class="o">|</span>e<span class="o">|</span> } <span class="c"># iterate ignored children</span></code></pre>
+<h4><a id="enumerable-support" class="anchor" href="#enumerable-support">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Enumerable Support</h4>
+<p><code><a href="Ignore/Dir.html">Ignore::Dir</a></code> includes <code>Enumerable</code>, iterating over non-ignored children:</p>
+<pre><code class="language-crystal">dir <span class="o">=</span> <span class="t">Ignore</span><span class="t">::</span><span class="t">Dir</span>.new(<span class="s">&quot;/path/to/project&quot;</span>, <span class="s">&quot;*.log&quot;</span>)
+dir.<span class="k">select</span> { <span class="o">|</span>entry<span class="o">|</span> entry.ends_with?(<span class="s">&quot;.cr&quot;</span>) }
+dir.map { <span class="o">|</span>entry<span class="o">|</span> entry.upcase }</code></pre>
+<h4><a id="dir-monkey-patch-optional" class="anchor" href="#dir-monkey-patch-optional">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Dir Monkey Patch (Optional)</h4>
+<p>For convenience, you can optionally load a monkey patch that adds <code>ignore</code> methods to <code><a href="Dir.html">Dir</a></code>:</p>
+<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;ignore/core_ext&quot;</span>
+
+<span class="c"># Class method (uses current directory)</span>
+<span class="t">Dir</span>.ignore(<span class="s">&quot;*.log&quot;</span>, <span class="s">&quot;build/&quot;</span>).glob(<span class="s">&quot;**/*&quot;</span>)
+<span class="t">Dir</span>.ignore(root: <span class="s">&quot;.gitignore&quot;</span>).glob(<span class="s">&quot;**/*&quot;</span>)
+
+<span class="c"># Instance method</span>
+<span class="t">Dir</span>.new(<span class="s">&quot;/path/to/project&quot;</span>).ignore(<span class="s">&quot;*.log&quot;</span>).glob(<span class="s">&quot;**/*&quot;</span>)
+<span class="t">Dir</span>.new(<span class="s">&quot;/path/to/project&quot;</span>).ignore(root: <span class="s">&quot;.gitignore&quot;</span>).children</code></pre>
+<h2><a id="supported-patterns" class="anchor" href="#supported-patterns">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Supported Patterns</h2>
+<p>| Pattern | Description |
+|---------|-------------|
+| <code>*.txt</code> | Wildcard, matches any <code>.txt</code> file |
+| <code>?</code> | Single character wildcard |
+| <code>[abc]</code> | Character class |
+| <code>[a-z]</code> | Character range |
+| <code>[!abc]</code> | Negated character class |
+| <code>build/</code> | Directory only (trailing slash) |
+| <code>/root</code> | Anchored to root (leading slash) |
+| <code>foo/bar</code> | Anchored (contains slash) |
+| <code>!pattern</code> | Negation (un-ignore) |
+| <code>**/foo</code> | Match in all directories |
+| <code>foo/**</code> | Match everything inside |
+| <code>a/**/b</code> | Zero or more directories between |
+| <code>\#</code> <code>\!</code> | Escaped special characters |</p>
+<h2><a id="license" class="anchor" href="#license">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>License</h2>
+<p>MIT</p>
+</div>
+</body>
+</html>
